@@ -189,30 +189,47 @@ exports.addAnswer = (req, res, next) => {
 };
 
 const mongoose = require("mongoose");
+// exports.allAnswers = (req, res, next) => {
+//   const id = req.userId;
+//   Technology.find({
+//     "subtopics.questions.answers.userId": id,
+//   })
+//     .populate({
+//       path: "subtopics.questions.userId",
+//       select: "username",
+//     })
+//     .exec((err, technologies) => {
+//       if (err) {
+//         console.error(err);
+//       } else {
+//         const answers = [];
+//         technologies.forEach((technology) => {
+//           technology.subtopics.forEach((subtopic) => {
+//             subtopic.questions.forEach((question) => {
+//               question.answers.forEach((answer) => {
+//                 if (answer.userId && answer.userId.equals(id)) {
+//                   answers.push({
+//                     question: question.question,
+//                     answer: answer.answer,
+//                     upvotes: answer.upvotes,
+//                     downvotes: answer.downvotes,
+//                     author: question.userId.username,
+//                   });
+//                 }
+//               });
+//             });
+//           });
+//         });
+//         console.log(answers);
+//         return res.status(200).send({
+//           message: "Answers fetched",
+//           answers: answers,
+//         });
+//       }
+//     });
+// };
 exports.allAnswers = (req, res, next) => {
   const id = req.userId;
-  //   Technology.aggregate([
-  //   { $unwind: "$subtopics" },
-  //   { $unwind: "$subtopics.questions" },
-  //   { $unwind: "$subtopics.questions.answers" },
-  //   {
-  //     $match: {
-  //       "subtopics.questions.answers.userId": mongoose.Types.ObjectId(id)
-  //     }
-  //   },
-  //   {
-  //     $project: {
-  //       _id: 0,
-  //       question: "$subtopics.questions.question",
-  //       answer: "$subtopics.questions.answers.answer"
-  //     }
-  //   }
-  // ]).then((data) => {
-  //   console.log(data);
-  //   res.status(200).send({message:"QA list",qalist:data})
-  // }).catch((error) => {
-  //   console.log(error);
-  // });
   Technology.find({
     "subtopics.questions.answers.userId": id,
   })
@@ -223,33 +240,37 @@ exports.allAnswers = (req, res, next) => {
     .exec((err, technologies) => {
       if (err) {
         console.error(err);
-      } else {
-        const answers = [];
-        technologies.forEach((technology) => {
-          technology.subtopics.forEach((subtopic) => {
-            subtopic.questions.forEach((question) => {
-              question.answers.forEach((answer) => {
-                if (answer.userId && answer.userId.equals(id)) {
-                  answers.push({
-                    question: question.question,
-                    answer: answer.answer,
-                    upvotes: answer.upvotes,
-                    downvotes: answer.downvotes,
-                    author: question.userId.username,
-                  });
-                }
-              });
+        return res.status(500).send({ message: "Error occurred" });
+      }
+
+      const answers = [];
+      technologies.forEach((technology) => {
+        technology.subtopics.forEach((subtopic) => {
+          subtopic.questions.forEach((question) => {
+            question.answers.forEach((answer) => {
+              if (answer.userId && answer.userId.equals(id)) {
+                const author = question.userId ? question.userId.username : 'Unknown';
+                answers.push({
+                  question: question.question,
+                  answer: answer.answer,
+                  upvotes: answer.upvotes,
+                  downvotes: answer.downvotes,
+                  author: author,
+                });
+              }
             });
           });
         });
-        console.log(answers);
-        return res.status(200).send({
-          message: "Answers fetched",
-          answers: answers,
-        });
-      }
+      });
+
+      console.log(answers);
+      return res.status(200).send({
+        message: "Answers fetched",
+        answers: answers,
+      });
     });
 };
+
 
 exports.allQuestions = (req, res, next) => {
   // const id= req.userId;
